@@ -1,43 +1,121 @@
-# PawPal+ (Module 2 Project)
+# 🐾 PawPal+
 
-You are building **PawPal+**, a Streamlit app that helps a pet owner plan care tasks for their pet.
+A smart pet care management system that helps owners keep their pets happy and healthy by tracking daily routines — feedings, walks, medications, and appointments.
 
-## Scenario
+---
 
-A busy pet owner needs help staying consistent with pet care. They want an assistant that can:
-
-- Track pet care tasks (walks, feeding, meds, enrichment, grooming, etc.)
-- Consider constraints (time available, priority, owner preferences)
-- Produce a daily plan and explain why it chose that plan
-
-Your job is to design the system first (UML), then implement the logic in Python, then connect it to the Streamlit UI.
-
-## What you will build
-
-Your final app should:
-
-- Let a user enter basic owner + pet info
-- Let a user add/edit tasks (duration + priority at minimum)
-- Generate a daily schedule/plan based on constraints and priorities
-- Display the plan clearly (and ideally explain the reasoning)
-- Include tests for the most important scheduling behaviors
-
-## Getting started
-
-### Setup
+## 🚀 Setup
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Suggested workflow
+Run the Streamlit UI:
 
-1. Read the scenario carefully and identify requirements and edge cases.
-2. Draft a UML diagram (classes, attributes, methods, relationships).
-3. Convert UML into Python class stubs (no logic yet).
-4. Implement scheduling logic in small increments.
-5. Add tests to verify key behaviors.
-6. Connect your logic to the Streamlit UI in `app.py`.
-7. Refine UML so it matches what you actually built.
+```bash
+streamlit run app.py
+```
+
+Run the CLI demo:
+
+```bash
+python main.py
+```
+
+---
+
+## 🏗️ Architecture
+
+PawPal+ uses a four-class OOP design defined in `pawpal_system.py`:
+
+```
+classDiagram
+    class Task {
+        +str description
+        +str time
+        +str frequency
+        +bool completed
+        +date due_date
+        +mark_complete()
+    }
+    class Pet {
+        +str name
+        +str species
+        +List~Task~ tasks
+        +add_task(task)
+        +task_count()
+    }
+    class Owner {
+        +str name
+        +List~Pet~ pets
+        +add_pet(pet)
+        +get_all_tasks()
+        +get_pet(name)
+    }
+    class Scheduler {
+        +Owner owner
+        +get_all_tasks()
+        +sort_by_time()
+        +filter_by_status(completed)
+        +filter_by_pet(pet_name)
+        +detect_conflicts()
+        +mark_task_complete(pet_name, description)
+    }
+    Owner "1" --> "*" Pet
+    Pet "1" --> "*" Task
+    Scheduler --> Owner
+```
+
+---
+
+## ✨ Features
+
+### Smarter Scheduling
+
+| Feature | Description |
+|---|---|
+| **Sorting by time** | `Scheduler.sort_by_time()` returns all tasks in chronological HH:MM order using Python's `sorted()` with a lambda key. |
+| **Filtering** | Filter tasks by completion status (`filter_by_status`) or by individual pet (`filter_by_pet`). |
+| **Conflict detection** | `detect_conflicts()` scans for two tasks belonging to the same pet at the same time on the same day and returns human-readable warnings. |
+| **Daily recurrence** | Completing a `daily` task automatically schedules the next occurrence for tomorrow using `timedelta(days=1)`. |
+| **Weekly recurrence** | Completing a `weekly` task schedules the next occurrence 7 days out using `timedelta(weeks=1)`. |
+
+---
+
+## 🧪 Testing PawPal+
+
+```bash
+python -m pytest
+```
+
+The test suite in `tests/test_pawpal.py` covers:
+
+- **Task completion** — `mark_complete()` correctly flips the `completed` flag.
+- **Task addition** — adding a task increases a pet's `task_count`.
+- **Sorting correctness** — tasks are returned in strict chronological order.
+- **Conflict detection** — duplicate time slots for the same pet are flagged; different pets at the same time are not.
+- **Recurrence logic** — completing a daily/weekly task creates a new task with the correct future `due_date`; `once` tasks do not recur.
+- **Edge cases** — empty schedules, unknown pets, case-insensitive pet lookup.
+
+**Confidence level: ⭐⭐⭐⭐⭐** — 23 tests, all passing.
+
+---
+
+## 📸 Demo
+
+*(Add a screenshot of the running Streamlit app here.)*
+
+---
+
+## 🗂️ File Structure
+
+```
+project2/
+├── pawpal_system.py   # Core logic: Task, Pet, Owner, Scheduler
+├── app.py             # Streamlit UI
+├── main.py            # CLI demo / manual verification
+├── requirements.txt
+├── reflection.md
+└── tests/
+    └── test_pawpal.py
+```
