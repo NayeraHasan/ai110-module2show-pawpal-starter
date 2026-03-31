@@ -24,6 +24,7 @@ class Task:
     description: str
     time: str          # "HH:MM" 24-hour format
     frequency: str     # "once" | "daily" | "weekly"
+    priority: str = "medium"   # "high" | "medium" | "low"
     completed: bool = False
     due_date: date = field(default_factory=date.today)
 
@@ -116,13 +117,30 @@ class Scheduler:
     # Sorting
     # ------------------------------------------------------------------
 
+    # Priority rank used as a tiebreaker: lower number = higher urgency
+    _PRIORITY_RANK = {"high": 0, "medium": 1, "low": 2}
+
     def sort_by_time(self) -> List[Tuple[str, Task]]:
-        """Return tasks sorted chronologically by their HH:MM time."""
-        return sorted(self.get_all_tasks(), key=lambda pair: pair[1].time)
+        """Return tasks sorted chronologically; priority breaks ties at the same time."""
+        return sorted(
+            self.get_all_tasks(),
+            key=lambda pair: (
+                pair[1].time,
+                self._PRIORITY_RANK.get(pair[1].priority, 1),
+            ),
+        )
 
     # ------------------------------------------------------------------
     # Filtering
     # ------------------------------------------------------------------
+
+    def filter_by_priority(self, priority: str) -> List[Tuple[str, Task]]:
+        """Return tasks matching the given priority ('high', 'medium', or 'low')."""
+        return [
+            (pet_name, task)
+            for pet_name, task in self.get_all_tasks()
+            if task.priority == priority
+        ]
 
     def filter_by_status(self, completed: bool = False) -> List[Tuple[str, Task]]:
         """Return tasks matching the given completion status."""
@@ -203,6 +221,7 @@ class Scheduler:
             description=completed_task.description,
             time=completed_task.time,
             frequency=completed_task.frequency,
+            priority=completed_task.priority,
             due_date=completed_task.due_date + delta,
         )
         pet.add_task(next_task)

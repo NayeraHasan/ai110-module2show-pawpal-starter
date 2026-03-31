@@ -33,16 +33,16 @@ def print_schedule(label: str, pairs) -> None:
 owner = Owner("Alex")
 
 buddy = Pet("Buddy", "Dog")
-buddy.add_task(Task("Morning walk",    "07:30", "daily"))
-buddy.add_task(Task("Dinner feeding",  "18:00", "daily"))
-buddy.add_task(Task("Flea treatment",  "09:00", "weekly"))
-buddy.add_task(Task("Vet appointment", "14:00", "once"))
+buddy.add_task(Task("Morning walk",    "07:30", "daily",  priority="high"))
+buddy.add_task(Task("Dinner feeding",  "18:00", "daily",  priority="high"))
+buddy.add_task(Task("Flea treatment",  "09:00", "weekly", priority="medium"))
+buddy.add_task(Task("Vet appointment", "14:00", "once",   priority="high"))
 
 whiskers = Pet("Whiskers", "Cat")
-whiskers.add_task(Task("Morning feeding", "08:00", "daily"))
-whiskers.add_task(Task("Evening feeding", "18:00", "daily"))
+whiskers.add_task(Task("Morning feeding", "08:00", "daily",  priority="high"))
+whiskers.add_task(Task("Evening feeding", "18:00", "daily",  priority="high"))
 # Intentional conflict — Whiskers has two tasks at 08:00
-whiskers.add_task(Task("Medication",     "08:00", "daily"))
+whiskers.add_task(Task("Medication",      "08:00", "daily",  priority="high"))
 
 owner.add_pet(buddy)
 owner.add_pet(whiskers)
