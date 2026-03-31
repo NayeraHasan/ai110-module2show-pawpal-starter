@@ -49,6 +49,7 @@ if pet_names:
         description = st.text_input("Task description")
         task_time   = st.time_input("Time")
         frequency   = st.selectbox("Frequency", ["once", "daily", "weekly"])
+        priority    = st.selectbox("Priority", ["high", "medium", "low"], index=1)
         due_date    = st.date_input("Due date", value=date.today())
         task_submit = st.form_submit_button("Add Task")
 
@@ -59,7 +60,7 @@ if pet_names:
                 pet = owner.get_pet(target_pet)
                 if pet:
                     time_str = task_time.strftime("%H:%M")
-                    pet.add_task(Task(description.strip(), time_str, frequency, due_date=due_date))
+                    pet.add_task(Task(description.strip(), time_str, frequency, priority=priority, due_date=due_date))
                     st.sidebar.success(f"Scheduled '{description}' for {target_pet}.")
 else:
     st.sidebar.info("Add a pet first to schedule tasks.")
@@ -77,6 +78,19 @@ if conflicts:
     st.subheader("⚠️ Scheduling Conflicts")
     for warning in conflicts:
         st.warning(warning)
+
+# ── Summary stats ────────────────────────────────────────────────────────────
+
+all_tasks = scheduler.get_all_tasks()
+total     = len(all_tasks)
+done      = sum(1 for _, t in all_tasks if t.completed)
+high_due  = sum(1 for _, t in all_tasks if t.priority == "high" and not t.completed)
+
+s1, s2, s3, s4 = st.columns(4)
+s1.metric("Pets", len(owner.pets))
+s2.metric("Total tasks", total)
+s3.metric("Completed", done)
+s4.metric("High-priority pending", high_due)
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
 
@@ -116,11 +130,13 @@ with tab_today:
     if not tasks:
         st.info("No tasks match the current filters.")
     else:
+        priority_icon = {"high": "🔴", "medium": "🟡", "low": "🟢"}
         rows = []
         for pet_name, task in tasks:
             rows.append({
                 "Status":      "✓ Done" if task.completed else "○ Pending",
                 "Time":        task.time,
+                "Priority":    priority_icon.get(task.priority, "") + " " + task.priority,
                 "Pet":         pet_name,
                 "Task":        task.description,
                 "Frequency":   task.frequency,
