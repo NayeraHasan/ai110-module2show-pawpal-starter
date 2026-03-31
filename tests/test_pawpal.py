@@ -236,3 +236,53 @@ def test_sort_empty_task_list():
     owner = Owner("Empty")
     scheduler = Scheduler(owner)
     assert scheduler.sort_by_time() == []
+
+
+# ── Priority tests ────────────────────────────────────────────────────────────
+
+def test_task_default_priority():
+    """A Task created without a priority should default to 'medium'."""
+    task = Task("Walk", "07:00", "daily")
+    assert task.priority == "medium"
+
+
+def test_filter_by_priority_returns_correct_tasks():
+    """filter_by_priority('high') should return only high-priority tasks."""
+    owner = Owner("Alex")
+    pet = Pet("Rex", "Dog")
+    pet.add_task(Task("Walk",    "07:00", "daily", priority="high"))
+    pet.add_task(Task("Feeding", "08:00", "daily", priority="low"))
+    owner.add_pet(pet)
+    scheduler = Scheduler(owner)
+
+    high_tasks = scheduler.filter_by_priority("high")
+    assert len(high_tasks) == 1
+    assert high_tasks[0][1].description == "Walk"
+
+
+def test_sort_priority_tiebreaker():
+    """When two tasks share the same time, high priority should come first."""
+    owner = Owner("Alex")
+    pet = Pet("Rex", "Dog")
+    pet.add_task(Task("Low task",  "08:00", "once", priority="low"))
+    pet.add_task(Task("High task", "08:00", "once", priority="high"))
+    owner.add_pet(pet)
+    scheduler = Scheduler(owner)
+
+    sorted_tasks = scheduler.sort_by_time()
+    assert sorted_tasks[0][1].description == "High task"
+    assert sorted_tasks[1][1].description == "Low task"
+
+
+def test_recurrence_preserves_priority():
+    """A new recurrence task should inherit the original task's priority."""
+    owner = Owner("Alex")
+    pet = Pet("Rex", "Dog")
+    today = date.today()
+    pet.add_task(Task("Walk", "07:00", "daily", priority="high", due_date=today))
+    owner.add_pet(pet)
+    scheduler = Scheduler(owner)
+
+    scheduler.mark_task_complete("Rex", "Walk")
+    new_task = pet.tasks[-1]
+    assert new_task.priority == "high"
